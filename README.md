@@ -76,14 +76,16 @@ Shareable links: `?network=arcTestnet&provider=0&caller=0x...` prefills the prov
 1. Copy `.env.example` to `.env` and fill in `PRIVATE_KEY` (a funded testnet or mainnet key — never commit this
    file). Optionally also set `PRIVATE_KEY_CALLER` to a second funded key, so the demo has a real provider address
    and a real caller address instead of one address playing both roles.
-2. `npm run deploy:testnet` (or `deploy:mainnet`) — deploys the contract and automatically writes the address into
-   `docs/config.js` under `contractAddresses.arcTestnet` (or `arcMainnet`).
-3. `npm run cycle:testnet` (or `cycle:mainnet`, with `CONTRACT_ADDRESS` set to the address from step 2) — runs the
-   full `registerProvider → topUp → recordUsage ×2 → withdrawEarned → withdrawUnused` cycle for you in one go and
-   prints every tx hash as an `explorer.{testnet.}arc.io` link, ready to paste into the submission/video script.
-   Override `PRICE_PER_CALL`, `TOPUP_AMOUNT`, `CALLS_PER_BATCH` env vars to change the demo amounts (defaults keep
-   the whole cycle under $1 USDC: price 0.01, top-up 0.5, 5 calls per batch).
-4. Reload `docs/index.html` — the status line switches from "no contract deployed yet" to the live address.
+2. `npm run demo:testnet` (or `demo:mainnet`) — one command that deploys the contract, writes the address into
+   `docs/config.js` under `contractAddresses.arcTestnet` (or `arcMainnet`), and immediately runs the full
+   `registerProvider → topUp → recordUsage ×2 → withdrawEarned → withdrawUnused` cycle against it, printing every tx
+   hash as an `explorer.{testnet.}arc.io` link ready to paste into the submission/video script. Override
+   `PRICE_PER_CALL`, `TOPUP_AMOUNT`, `CALLS_PER_BATCH` env vars to change the demo amounts (defaults keep the whole
+   cycle under $1 USDC: price 0.01, top-up 0.5, 5 calls per batch).
+   - To deploy and run the cycle as two separate steps instead (e.g. to re-run the cycle later against the same
+     contract), use `npm run deploy:testnet`/`deploy:mainnet` followed by `npm run cycle:testnet`/`cycle:mainnet`
+     with `CONTRACT_ADDRESS` set to the deployed address.
+3. Reload `docs/index.html` — the status line switches from "no contract deployed yet" to the live address.
 
 **Verify the contract addresses you rely on (USDC itself, if you ever need the ERC-20 wrapper) directly against
 [docs.arc.io/arc/references/contract-addresses](https://docs.arc.io/arc/references/contract-addresses) or
@@ -104,9 +106,9 @@ trusted.
 ## What's mocked / not done
 
 - No contract is deployed yet on testnet or mainnet — `contractAddresses` in `docs/config.js` are empty. The
-  `deploy:testnet`/`deploy:mainnet` and `cycle:testnet`/`cycle:mainnet` npm scripts above are ready and were verified
-  end-to-end against a local Hardhat node (both self-dealing and two-address modes); running them for real against
-  Arc still needs a human with a funded key, which this build stage never holds.
+  `demo:testnet`/`demo:mainnet` npm scripts above (and the `deploy:*`/`cycle:*` pair they're built from) are ready
+  and were verified end-to-end against a local Hardhat node (both self-dealing and two-address modes); running them
+  for real against Arc still needs a human with a funded key, which this build stage never holds.
 - The live-activity screenshot in `screenshots/` was taken against a local Hardhat node standing in for Arc Testnet.
 - No video yet — record it after a real testnet (or mainnet) deployment, once channel credit and the activity log
   reflect genuine on-chain transactions.
