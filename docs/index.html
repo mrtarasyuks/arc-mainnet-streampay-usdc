@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AgentMeter — pay-per-call USDC metering on Arc</title>
+<meta name="description" content="A tiny on-chain meter for software-to-software USDC payments on Arc: a provider sets a price per call, a caller prepays credit, usage is reported and settled live." />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="hero">
+  <h1>AgentMeter</h1>
+  <p class="tagline">Pay-per-call USDC metering for software-to-software payments on Arc.</p>
+  <p class="honesty">
+    Built by one person with AI (Claude Code) assistance for the Arc Microgrants round 2 hackathon.
+    No wallet is ever asked to sign anything except the actions you press below. Read the
+    <a href="#how-it-works">flow</a> and the <a href="https://github.com/mrtarasyuks/arc-mainnet-streampay-usdc#readme">README</a> before sending real USDC.
+  </p>
+</header>
+
+<main>
+  <section class="panel" id="connection">
+    <h2>1. Network &amp; wallet</h2>
+    <div class="row">
+      <label for="network-select">Network</label>
+      <select id="network-select">
+        <option value="arcTestnet">Arc Testnet (5042002) — safe for testing</option>
+        <option value="arcMainnet">Arc Mainnet (5042) — real USDC</option>
+      </select>
+      <button id="connect-btn">Connect wallet</button>
+      <span id="wallet-address" class="pill">not connected</span>
+    </div>
+    <p id="contract-status" class="status"></p>
+  </section>
+
+  <section class="panel" id="how-it-works">
+    <h2>2. How it works</h2>
+    <ol class="flow">
+      <li><strong>registerProvider(pricePerCall)</strong> — a service registers once and gets a <code>providerId</code>.</li>
+      <li><strong>topUp(providerId)</strong> — a caller prepays USDC credit against that provider's channel.</li>
+      <li><strong>recordUsage(providerId, caller, calls)</strong> — only the provider can call this; it charges <code>calls × pricePerCall</code> straight out of the caller's channel credit, or reverts if credit is too low.</li>
+      <li><strong>withdrawEarned()</strong> / <strong>withdrawUnused(providerId)</strong> — the provider pulls what it earned, the caller pulls back whatever credit is left.</li>
+    </ol>
+  </section>
+
+  <section class="panel" id="provider-panel">
+    <h2>3. Provider — register &amp; report usage</h2>
+    <div class="row">
+      <label for="price-input">Price per call (USDC)</label>
+      <input id="price-input" type="number" min="0" step="0.000001" placeholder="0.01" />
+      <button id="register-btn">Register as provider</button>
+    </div>
+    <div class="row">
+      <label for="my-provider-id">My providerId</label>
+      <input id="my-provider-id" type="number" min="0" step="1" placeholder="e.g. 0" />
+      <span id="my-provider-info" class="hint"></span>
+    </div>
+    <div class="row">
+      <label for="usage-caller">Caller address</label>
+      <input id="usage-caller" type="text" placeholder="0x..." />
+      <label for="usage-calls">Calls served</label>
+      <input id="usage-calls" type="number" min="1" step="1" placeholder="5" />
+      <button id="record-usage-btn">recordUsage()</button>
+    </div>
+    <div class="row">
+      <span>Earned balance: <strong id="earned-balance">—</strong></span>
+      <button id="withdraw-earned-btn">withdrawEarned()</button>
+    </div>
+  </section>
+
+  <section class="panel" id="caller-panel">
+    <h2>4. Caller — top up &amp; watch credit tick down</h2>
+    <div class="row">
+      <label for="topup-provider-id">providerId</label>
+      <input id="topup-provider-id" type="number" min="0" step="1" placeholder="e.g. 0" />
+      <label for="topup-amount">Amount (USDC)</label>
+      <input id="topup-amount" type="number" min="0" step="0.000001" placeholder="0.50" />
+      <button id="topup-btn">topUp()</button>
+    </div>
+    <div class="row">
+      <span>My channel credit with this provider:</span>
+      <strong id="channel-credit" class="live-counter">—</strong>
+      <button id="withdraw-unused-btn">withdrawUnused()</button>
+    </div>
+  </section>
+
+  <section class="panel" id="log-panel">
+    <h2>5. Live activity log</h2>
+    <p class="hint">Every event the contract has emitted, oldest first. Links go to the explorer for this network.</p>
+    <ul id="activity-log" class="log"></ul>
+  </section>
+</main>
+
+<footer>
+  <p>
+    Contract source: <a href="../contracts/AgentMeter.sol">contracts/AgentMeter.sol</a>.
+    Data read directly from the chain's public RPC — no backend, no indexer, no API key.
+  </p>
+</footer>
+
+<script src="vendor/ethers.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

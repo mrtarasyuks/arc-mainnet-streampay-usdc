@@ -3,3 +3,7 @@ node_modules/
 .env.*
 !.env.example
 _private/
+artifacts/
+cache/
+typechain-types/
+dist/
