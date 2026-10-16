@@ -7,7 +7,9 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy.ts --network arcTestnet",
-    "deploy:mainnet": "hardhat run scripts/deploy.ts --network arcMainnet"
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network arcMainnet",
+    "cycle:testnet": "hardhat run scripts/run-cycle.ts --network arcTestnet",
+    "cycle:mainnet": "hardhat run scripts/run-cycle.ts --network arcMainnet"
   },
   "repository": {
     "type": "git",

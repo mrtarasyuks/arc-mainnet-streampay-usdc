@@ -22,9 +22,10 @@ only gets paid for calls it actually reports, and either side can see the runnin
 This is a one-person build with AI assistance (Claude Code) for a hackathon submission. The contract and frontend
 were written directly rather than captured as a literal Arc Studio session transcript — **the Arc Studio prompt used
 to shape this build is in `_private/idea-decision.md`** (not published; it is the internal planning note, not part
-of the product). If the hackathon's "built in Arc Studio" requirement means the submission must be generated through
-studio.arc.io itself, re-running that exact prompt there is a separate step the human needs to do before submitting;
-see `_private/` notes for what's still open.
+of the product). The DoraHacks submission form for this hackathon asks for an Arc Studio project URL as one of its
+fields, so running that exact prompt through studio.arc.io (and comparing what it generates against what's already
+in this repo) is a required step before submitting, not an optional one; see `_private/` notes for what's still
+open.
 
 No contract address is filled in below until the contract is actually deployed. No private key, seed phrase, or API
 token lives anywhere in this repo.
@@ -73,9 +74,15 @@ Shareable links: `?network=arcTestnet&provider=0&caller=0x...` prefills the prov
 ## Deploying (a human step — this repo never signs or sends a transaction on its own)
 
 1. Copy `.env.example` to `.env` and fill in `PRIVATE_KEY` (a funded testnet or mainnet key — never commit this
-   file).
-2. `npm run deploy:testnet` (or `deploy:mainnet`) — prints the deployed address.
-3. Put that address into `docs/config.js` under `contractAddresses.arcTestnet` (or `arcMainnet`).
+   file). Optionally also set `PRIVATE_KEY_CALLER` to a second funded key, so the demo has a real provider address
+   and a real caller address instead of one address playing both roles.
+2. `npm run deploy:testnet` (or `deploy:mainnet`) — deploys the contract and automatically writes the address into
+   `docs/config.js` under `contractAddresses.arcTestnet` (or `arcMainnet`).
+3. `npm run cycle:testnet` (or `cycle:mainnet`, with `CONTRACT_ADDRESS` set to the address from step 2) — runs the
+   full `registerProvider → topUp → recordUsage ×2 → withdrawEarned → withdrawUnused` cycle for you in one go and
+   prints every tx hash as an `explorer.{testnet.}arc.io` link, ready to paste into the submission/video script.
+   Override `PRICE_PER_CALL`, `TOPUP_AMOUNT`, `CALLS_PER_BATCH` env vars to change the demo amounts (defaults keep
+   the whole cycle under $1 USDC: price 0.01, top-up 0.5, 5 calls per batch).
 4. Reload `docs/index.html` — the status line switches from "no contract deployed yet" to the live address.
 
 **Verify the contract addresses you rely on (USDC itself, if you ever need the ERC-20 wrapper) directly against
@@ -84,18 +91,27 @@ Shareable links: `?network=arcTestnet&provider=0&caller=0x...` prefills the prov
 
 ## Known limitation: native USDC decimals assumption
 
-Arc's docs describe USDC's ERC-20 wrapper as using 6 decimals. This build assumes the chain's native value
-(`msg.value`, `address.balance`) uses the same 6-decimal convention, so `docs/config.js` sets `usdcDecimals: 6` and
-every amount typed into the UI (e.g. "0.01") is converted with `ethers.parseUnits(x, 6)`. **This has not been
-verified against a live Arc RPC** (this build environment has no network access to check it). If Arc's native
-currency instead follows the common 18-decimal EVM convention, every amount in this app would be off by 10^12 and
-must be rescaled before any real deployment. Confirm this against docs.arc.io or by sending a tiny top-up on testnet
-and checking the resulting balance delta before moving real USDC.
+Arc's docs describe USDC — including its native gas role — as 6-decimal. This build assumes the chain's native value
+(`msg.value`, `address.balance`) uses that same 6-decimal convention, so `docs/config.js` sets `usdcDecimals: 6` and
+every amount typed into the UI (e.g. "0.01") is converted with `ethers.parseUnits(x, 6)`. This build stage has no
+network access to call a live Arc RPC itself, so the assumption is still only a documentation read, not a live
+measurement. `npm run cycle:testnet` now prints the exact value sent in a `topUp` call next to the caller's actual
+balance drop (in both raw units and USDC-formatted) specifically so the human running that command can eyeball the
+two numbers once real testnet funds are involved — if the balance drop is off from the sent value by roughly `10^12`,
+the assumption is wrong and `usdcDecimals` in `docs/config.js` must change to `18` before any real amount can be
+trusted.
 
 ## What's mocked / not done
 
-- No contract is deployed yet on testnet or mainnet — `contractAddresses` in `docs/config.js` are empty.
-- The live-activity screenshot in `screenshots/` was taken against a local Hardhat node standing in for Arc Testnet
-  (real testnet/mainnet deployment needs a funded key, which this build stage does not hold).
+- No contract is deployed yet on testnet or mainnet — `contractAddresses` in `docs/config.js` are empty. The
+  `deploy:testnet`/`deploy:mainnet` and `cycle:testnet`/`cycle:mainnet` npm scripts above are ready and were verified
+  end-to-end against a local Hardhat node (both self-dealing and two-address modes); running them for real against
+  Arc still needs a human with a funded key, which this build stage never holds.
+- The live-activity screenshot in `screenshots/` was taken against a local Hardhat node standing in for Arc Testnet.
 - No video yet — record it after a real testnet (or mainnet) deployment, once channel credit and the activity log
   reflect genuine on-chain transactions.
+- **This submission requires a literal Arc Studio project URL** (per the DoraHacks submission form fields — see
+  `_private/idea-decision.md`). The contract and frontend here were written directly, not generated through a
+  studio.arc.io session; running the Arc Studio prompt in `_private/idea-decision.md` through studio.arc.io and
+  getting that project URL is a required human step before submitting, not an optional one — this build stage has no
+  web access to do it itself.

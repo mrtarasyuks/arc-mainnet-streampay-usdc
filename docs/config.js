@@ -29,11 +29,12 @@ window.AGENT_METER_CONFIG = {
     arcTestnet: "",
     arcMainnet: "",
   },
-  // USDC's native decimals on Arc are stated as 6 in docs.arc.io's contract
-  // reference for the ERC-20 wrapper. VERIFY this matches the native value
-  // (msg.value) convention on Arc before relying on it for real amounts —
-  // if the chain instead uses 18-decimal native accounting, every amount
-  // shown here would be off by 10^12 and must be rescaled.
+  // docs.arc.io describes USDC itself — Arc's native gas token — as 6-decimal,
+  // not just its optional ERC-20 wrapper. Still only a documentation read, not
+  // a live RPC measurement: `npm run cycle:testnet` prints the sent topUp value
+  // next to the caller's actual balance drop so a human can confirm this live.
+  // If the chain instead uses 18-decimal native accounting, every amount shown
+  // here would be off by 10^12 and must be rescaled.
   usdcDecimals: 6,
   abi: [
     { "inputs": [], "name": "CallsMustBePositive", "type": "error" },
