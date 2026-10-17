@@ -1,4 +1,5 @@
 import { ethers, network } from "hardhat";
+import { mainnetGuard } from "./mainnetGuard";
 
 // One real signing session against an already-deployed AgentMeter contract:
 // registerProvider -> topUp -> recordUsage x2 -> withdrawEarned -> withdrawUnused.
@@ -9,6 +10,8 @@ export async function runDemoCycle(contractAddress: string) {
   const pricePerCall = BigInt(process.env.PRICE_PER_CALL ?? "10000");
   const topUpAmount = BigInt(process.env.TOPUP_AMOUNT ?? "500000");
   const callsPerBatch = BigInt(process.env.CALLS_PER_BATCH ?? "5");
+
+  await mainnetGuard(topUpAmount);
 
   const [providerSigner] = await ethers.getSigners();
   const callerSigner = process.env.PRIVATE_KEY_CALLER

@@ -2,10 +2,12 @@ import { ethers, network } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
 import type { AgentMeter } from "../../typechain-types";
+import { mainnetGuard } from "./mainnetGuard";
 
 // network.name as passed to `--network` must match a key in docs/config.js's
 // `networks` object (arcTestnet / arcMainnet) for the auto-write below to work.
 export async function deployAgentMeter(): Promise<{ contract: AgentMeter; address: string }> {
+  await mainnetGuard();
   const [deployer] = await ethers.getSigners();
   console.log(`Network: ${network.name}`);
   console.log(`Deployer: ${deployer.address}`);
